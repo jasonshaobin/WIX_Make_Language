@@ -15,16 +15,19 @@ import win32con
 # Language_zh_TW= Language_Class()
 
 m_MSI_path = None
-m_MSI_name = "VTM300_X64.msi"
+m_MSI_name = "TEST.msi"
 m_wilangid_vbs_name = "wilangid.vbs"
 m_wisubstg_vbs_name = "wisubstg.vbs"
+m_wilangid_vbs_path = None
+m_wisubstg_vbs_path = None
+m_Language_en_US_MSI = None
 m_Release_path = None
 m_APP_path = None
 Language_dict = {"zh-CN": 2052, "zh-TW": 1028, "en-US": 1033}  # 语言字典
 ReleaseDirList = None
 
 
-def CreateMST(Language_Culture_A, Language_Culture_B, m_Release_path):
+def CreateMST(Language_Culture_A, Language_Culture_B):
     szTmpFile = os.path.join(m_Release_path, Language_Culture_A, m_MSI_name)
     if not os.path.exists(szTmpFile):
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
@@ -50,22 +53,25 @@ def CreateMST(Language_Culture_A, Language_Culture_B, m_Release_path):
 
 # WiSubStg.vbs "en-us\DIAViewSetup.msi" "transforms\zh-cn.mst"  2052
 def MergeMST(Language_Culture_en_US, Language_Culture_xx, Language_xx_decimal):
+    global m_Language_en_US_MSI
     szTmpFile = None
     szTmpFile = os.path.join(m_Release_path, Language_Culture_en_US, m_MSI_name)
     if not os.path.exists(szTmpFile):
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
-    Language_en_US_MSI = szTmpFile
+    m_Language_en_US_MSI = szTmpFile
 
     szTmpFile = None
-    szTmpFile = os.path.join(m_Release_path, Language_Culture_xx, Language_Culture_xx + "mst")
+    szTmpFile = os.path.join(m_Release_path, Language_Culture_xx, Language_Culture_xx + ".mst")
     if not os.path.exists(szTmpFile):
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
     Language_xx_MST = szTmpFile
 
-    szCml = "\"" + Language_en_US_MSI + "\" " + Language_xx_MST + "\"" + Language_xx_decimal
-    win32api.ShellExecute(None, "open", "wilangid.vbs", szCml, m_APP_path, 1)
+    m_wisubstg_vbs_name = os.path.join(m_APP_path, "WiSubStg.vbs")
+    szCml = "\"" + m_Language_en_US_MSI + "\" " + m_wisubstg_vbs_name + "\" " + str(Language_xx_decimal)
+    # win32api.ShellExecute(None, "", m_wisubstg_vbs_name, szCml, "", 1)
+    os.system(m_wisubstg_vbs_name + " " + szCml)
     return True
 
 
@@ -82,28 +88,35 @@ if __name__ == "__main__":
     # 检索Release文件夹中生成语言数
     ReleaseDirList = os.listdir(m_Release_path)
     n = ReleaseDirList.__len__()
-    i = 0
-    while i < n:
-        Language_Culture = None
-        Language_Culture = ReleaseDirList[i]
-        if Language_dict.get(Language_Culture) is not None:
-            if Language_Culture == "en-US":
-                CreateMST("zh-CN", "en-US", m_Release_path, m_MSI_name)
-
+    for LanguageID_Culture in Language_dict:
+        Language_decimal = Language_dict[LanguageID_Culture]
+        if Language_decimal is not None:
+            if LanguageID_Culture == "en-US":
+                CreateMST("zh-CN", "en-US")
             else:
-                CreateMST("en-US", Language_Culture, m_Release_path, m_MSI_name)
-        i += 1
+                CreateMST("en-US", LanguageID_Culture)
+
 
     # 生成变形文件
     # WiSubStg.vbs "en-us\DIAViewSetup.msi" "transforms\zh-cn.mst"  2052
-    i = 0
-    while i < n:
-        Language_Culture = None
-        Language_Culture = ReleaseDirList[i]
-        if Language_dict.get(Language_Culture) is not None:
-            if Language_Culture == "en-US":
+    languageList = []
+    for LanguageID_Culture in Language_dict:
+        Language_decimal = Language_dict[LanguageID_Culture]
+        tmp = str(Language_decimal)
+        languageList.append(tmp)
+        if Language_decimal is not None:
+            if LanguageID_Culture == "en-US":
                 pass
             else:
-                Language_xx_decimal = ReleaseDirList.get(Language_Culture)
-                MergeMST("en-US", Language_Culture, Language_xx_decimal)
-        i += 1
+                Language_decimal = Language_dict[LanguageID_Culture]
+                MergeMST("en-US", LanguageID_Culture, Language_decimal)
+
+    # WiLangId.vbs "en-us\TestInstaller.msi"  Package  1033, 1028, 2052
+    szTmpFile = os.path.join(m_APP_path, "WiLangId.vbs")
+    if not os.path.exists(szTmpFile):
+        win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
+        exit()
+    m_wilangid_vbs_path = szTmpFile
+    strID = " ".join(languageList)
+    szCml = "\"" + m_Language_en_US_MSI + "\" Package " + strID
+    os.system(m_wilangid_vbs_path + " " + szCml)
