@@ -1,5 +1,4 @@
 import os
-
 import win32api
 import win32con
 
@@ -15,7 +14,7 @@ import win32con
 # Language_zh_TW= Language_Class()
 
 m_MSI_path = None
-m_MSI_name = "TEST.msi"
+m_MSI_name = "VTM300_X64.msi"
 m_wilangid_vbs_name = "wilangid.vbs"
 m_wisubstg_vbs_name = "wisubstg.vbs"
 m_wilangid_vbs_path = None
@@ -32,20 +31,21 @@ def CreateMST(Language_Culture_A, Language_Culture_B):
     if not os.path.exists(szTmpFile):
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
-    Language_MSI_A = szTmpFile
+    Language_MSI_A = os.path.join("Release", Language_Culture_A, m_MSI_name)
     # ------------------------------------
     szTmpFile = None
     szTmpFile = os.path.join(m_Release_path, Language_Culture_B, m_MSI_name)
     if not os.path.exists(szTmpFile):
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
-    Language_MSI_B = szTmpFile
+    Language_MSI_B = os.path.join("Release", Language_Culture_B, m_MSI_name)
     # ------------------------------------
-    Language_MST_B = os.path.join(m_Release_path, Language_Culture_B, Language_Culture_B + ".mst")
+    Language_MST_B = os.path.join("Release", "Transforms", Language_Culture_B + ".mst")
     szCml = "-t language " + "\"" + Language_MSI_A + "\" \"" + Language_MSI_B + "\" -out  \"" + Language_MST_B + "\""
     win32api.ShellExecute(None, "open", "torch.exe", szCml, m_APP_path, 1)
-    if not os.path.exists(Language_MST_B):
-        win32api.MessageBox(0, "MST文件创建失败！\n" + Language_MST_B, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
+    szTmp=os.path.join(m_APP_path, Language_MST_B)
+    if not os.path.exists(szTmp):
+        win32api.MessageBox(0, "MST文件创建失败！\n" + szTmp, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
         return False
     return True
@@ -59,19 +59,19 @@ def MergeMST(Language_Culture_en_US, Language_Culture_xx, Language_xx_decimal):
     if not os.path.exists(szTmpFile):
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
-    m_Language_en_US_MSI = szTmpFile
+    m_Language_en_US_MSI =  os.path.join("Release", Language_Culture_en_US, m_MSI_name)
 
     szTmpFile = None
-    szTmpFile = os.path.join(m_Release_path, Language_Culture_xx, Language_Culture_xx + ".mst")
+    szTmpFile = os.path.join(m_Release_path, "Transforms", Language_Culture_xx + ".mst")
     if not os.path.exists(szTmpFile):
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
-    Language_xx_MST = szTmpFile
+    Language_xx_MST = os.path.join("Release", "Transforms", Language_Culture_xx + ".mst")
 
     m_wisubstg_vbs_name = os.path.join(m_APP_path, "WiSubStg.vbs")
-    szCml = "\"" + m_Language_en_US_MSI + "\" " + m_wisubstg_vbs_name + "\" " + str(Language_xx_decimal)
-    # win32api.ShellExecute(None, "", m_wisubstg_vbs_name, szCml, "", 1)
-    os.system(m_wisubstg_vbs_name + " " + szCml)
+    szCml = "\"" + m_Language_en_US_MSI + "\" \"" + Language_xx_MST + "\" " + str(Language_xx_decimal)
+    p=os.system("WiSubStg.vbs" + " " + szCml)
+    print(p)
     return True
 
 
@@ -117,6 +117,7 @@ if __name__ == "__main__":
         win32api.MessageBox(0, "必要文件缺失！\n" + szTmpFile, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
         exit()
     m_wilangid_vbs_path = szTmpFile
-    strID = " ".join(languageList)
+    strID = ",".join(languageList)
     szCml = "\"" + m_Language_en_US_MSI + "\" Package " + strID
-    os.system(m_wilangid_vbs_path + " " + szCml)
+    p=os.system("WiLangId.vbs" + " " + szCml)
+    print(p)
