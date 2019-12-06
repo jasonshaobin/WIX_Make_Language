@@ -23,7 +23,7 @@ m_wisubstg_vbs_path = None
 m_Language_en_US_MSI = None
 m_Release_path = None
 m_APP_path = None
-Language_dict = {"zh-CN": 2052, "zh-TW": 1028, "en-US": 1033}  # 语言字典
+Language_dict = {"en-US": 1033, "zh-CN": 2052, "zh-TW": 1028}  # 语言字典 注意：字典中英语必需排在第一位
 ReleaseDirList = None
 
 
