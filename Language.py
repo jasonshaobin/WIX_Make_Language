@@ -1,6 +1,7 @@
 import os
 import win32api
 import win32con
+import time
 
 # class Language_Class:
 #      def __init__(self):
@@ -43,6 +44,7 @@ def CreateMST(Language_Culture_A, Language_Culture_B):
     Language_MST_B = os.path.join("Release", "Transforms", Language_Culture_B + ".mst")
     szCml = "-t language " + "\"" + Language_MSI_A + "\" \"" + Language_MSI_B + "\" -out  \"" + Language_MST_B + "\""
     win32api.ShellExecute(None, "open", "torch.exe", szCml, m_APP_path, 1)
+    time.sleep(2)
     szTmp=os.path.join(m_APP_path, Language_MST_B)
     if not os.path.exists(szTmp):
         win32api.MessageBox(0, "MST文件创建失败！\n" + szTmp, "错误！", win32con.MB_OK | win32con.MB_ICONWARNING)
@@ -96,7 +98,6 @@ if __name__ == "__main__":
             else:
                 CreateMST("en-US", LanguageID_Culture)
 
-
     # 生成变形文件
     # WiSubStg.vbs "en-us\DIAViewSetup.msi" "transforms\zh-cn.mst"  2052
     languageList = []
@@ -110,6 +111,7 @@ if __name__ == "__main__":
             else:
                 Language_decimal = Language_dict[LanguageID_Culture]
                 MergeMST("en-US", LanguageID_Culture, Language_decimal)
+            time.sleep(1)
 
     # WiLangId.vbs "en-us\TestInstaller.msi"  Package  1033, 1028, 2052
     szTmpFile = os.path.join(m_APP_path, "WiLangId.vbs")
